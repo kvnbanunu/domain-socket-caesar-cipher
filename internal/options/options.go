@@ -5,10 +5,17 @@ package options
 // logging debug statements
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
+	"os"
 )
+
+// Config to be read during runtime, holds limit for buffer size
+type Config struct {
+	BufferSize int `json:"BufferSize"`
+}
 
 // Args is used to store command-line arguments
 type Args struct {
@@ -35,6 +42,23 @@ func (a Args) Log(timestamp bool, msg string) {
 	}
 }
 
+// Load config into memory
+func (a *Args) LoadConfig() (*Config, error) {
+	file, err := os.ReadFile("config.json")
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert json to struct
+	var cfg Config
+	err = json.Unmarshal(file, &cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	return &cfg, nil
+}
+
 // Parse command line arguments for either client or server
 func (a *Args) ParseArgs(isClient bool) {
 	// Set universal flags
@@ -56,7 +80,8 @@ func (a *Args) ParseArgs(isClient bool) {
 
 	// Format debug log
 	logState := fmt.Sprintf(
-		`Parsing Command Line Arguments:
+		`options.ParseArgs
+	Parsing Command Line Arguments:
 	Path: %s
 	Debug: %t`,
 		a.Path, a.Debug)

@@ -10,14 +10,17 @@ DOMAIN_SOCKET = bin/domain.sock
 MESSAGE = Hello
 SHIFT = 3
 CLIENT_ARGS = -p $(DOMAIN_SOCKET) -s $(SHIFT) -i $(MESSAGE)
+COPY_CONFIG = cp config.json bin/
 
 build-all: clean-all server_build client_build
 
 build-s: clean-s
 	@$(BUILD) $(SERVER_TARGET) $(SERVER)
+	@$(COPY_CONFIG)
 
 build-c: clean-c
 	@$(BUILD) $(CLIENT_TARGET) $(CLIENT)
+	@$(COPY_CONFIG)
 
 run-s:
 	@$(RUN) $(SERVER) $(DOMAIN_SOCKET)
