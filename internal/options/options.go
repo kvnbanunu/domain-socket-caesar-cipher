@@ -7,6 +7,7 @@ package options
 import (
 	"flag"
 	"fmt"
+	"log"
 )
 
 // Args is used to store command-line arguments
@@ -22,13 +23,27 @@ type Message struct {
 	Shift   int
 }
 
+// This method prints debug statements to stdout if debug flag is enabled
+func (a Args) Log(timestamp bool, msg string) {
+	if a.Debug {
+		if timestamp {
+			// log pkg Println includes date + time
+			log.Println(msg)
+		} else {
+			fmt.Println(msg)
+		}
+	}
+}
+
 // Parse command line arguments for either client or server
 func (a *Args) ParseArgs(isClient bool) {
+	// Set universal flags
 	path := flag.String("p", "bin/domain.sock", "Path to domain socket")
 	debug := flag.Bool("d", false, "Run program with debug log statements")
 	var content *string
 	var shift *int
 
+	// Client only flags
 	if isClient {
 		content = flag.String("i", "Hello, World", "String message to be encrypted")
 		shift = flag.Int("s", 3, "Shift value for Caesar Cipher")
@@ -39,15 +54,23 @@ func (a *Args) ParseArgs(isClient bool) {
 	a.Path = *path
 	a.Debug = *debug
 
+	// Format debug log
+	logState := fmt.Sprintf(
+		`Parsing Command Line Arguments:
+	Path: %s
+	Debug: %t`,
+		a.Path, a.Debug)
+
+	// Only prints if debug = true
+	a.Log(true, logState)
+
 	if isClient {
 		a.Message.Content = *content
 		a.Message.Shift = *shift
-	}
-}
 
-// This method prints debug statements to stdout if debug flag is enabled
-func (a Args) Log(msg string) {
-	if a.Debug {
-		fmt.Println(msg)
+		logState = fmt.Sprintf(
+			"\tMessage: %s\n\tShift Value: %d",
+			a.Message.Content, a.Message.Shift)
+		a.Log(false, logState)
 	}
 }
