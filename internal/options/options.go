@@ -1,6 +1,6 @@
 package options
 
-// Package options implements utility functions for 
+// Package options implements utility functions for
 // parsing and storing command line arguments
 // logging debug statements
 
@@ -11,15 +11,15 @@ import (
 
 // Args is used to store command-line arguments
 type Args struct {
-	Path string
-	Debug bool
+	Path    string
+	Debug   bool
 	Message Message
 }
 
 // Store a message along with the cipher shift value
 type Message struct {
 	Content string
-	Shift int
+	Shift   int
 }
 
 // Parse command line arguments for either client or server
@@ -29,7 +29,7 @@ func (a *Args) ParseArgs(isClient bool) {
 	var content *string
 	var shift *int
 
-	if (isClient) {
+	if isClient {
 		content = flag.String("i", "Hello, World", "String message to be encrypted")
 		shift = flag.Int("s", 3, "Shift value for Caesar Cipher")
 	}
@@ -38,8 +38,8 @@ func (a *Args) ParseArgs(isClient bool) {
 
 	a.Path = *path
 	a.Debug = *debug
-	
-	if (isClient) {
+
+	if isClient {
 		a.Message.Content = *content
 		a.Message.Shift = *shift
 	}
@@ -47,7 +47,7 @@ func (a *Args) ParseArgs(isClient bool) {
 
 // This method prints debug statements to stdout if debug flag is enabled
 func (a Args) Log(msg string) {
-	if (a.Debug) {
+	if a.Debug {
 		fmt.Println(msg)
 	}
 }

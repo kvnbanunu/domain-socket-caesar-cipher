@@ -1,3 +1,3 @@
-module github.com/kvnbanunu/domain-socket-caesar-cipher
+module github.com/kvnbanunu/uds-caesar-cipher
 
 go 1.25.1
