@@ -44,6 +44,8 @@ func (a Args) Log(timestamp bool, msg string) {
 
 // Load config into memory
 func (a *Args) LoadConfig() (*Config, error) {
+	a.Log(true, "options.LoadConfig()\n\tLoading config...")
+
 	file, err := os.ReadFile("config.json")
 	if err != nil {
 		return nil, err
@@ -56,13 +58,15 @@ func (a *Args) LoadConfig() (*Config, error) {
 		return nil, err
 	}
 
+	a.Log(false, "\tConfig Loaded")
+
 	return &cfg, nil
 }
 
 // Parse command line arguments for either client or server
 func (a *Args) ParseArgs(isClient bool) {
 	// Set universal flags
-	path := flag.String("p", "bin/domain.sock", "Path to domain socket")
+	path := flag.String("p", "domain.sock", "Path to domain socket")
 	debug := flag.Bool("d", false, "Run program with debug log statements")
 	var content *string
 	var shift *int
@@ -80,7 +84,7 @@ func (a *Args) ParseArgs(isClient bool) {
 
 	// Format debug log
 	logState := fmt.Sprintf(
-		`options.ParseArgs
+		`options.ParseArgs()
 	Parsing Command Line Arguments:
 	Path: %s
 	Debug: %t`,

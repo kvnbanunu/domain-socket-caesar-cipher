@@ -6,9 +6,10 @@ BUILD = go build -o
 RUN = go run
 DEBUG = -d
 HELP = -h
-DOMAIN_SOCKET = bin/domain.sock
+DOMAIN_SOCKET = domain.sock
 MESSAGE = Hello
 SHIFT = 3
+SERVER_ARGS = -p $(DOMAIN_SOCKET)
 CLIENT_ARGS = -p $(DOMAIN_SOCKET) -s $(SHIFT) -i $(MESSAGE)
 COPY_CONFIG = cp config.json bin/
 
@@ -23,13 +24,13 @@ build-c: clean-c
 	@$(COPY_CONFIG)
 
 run-s:
-	@$(RUN) $(SERVER) $(DOMAIN_SOCKET)
+	@$(RUN) $(SERVER) $(SERVER_ARGS)
 
 run-c:
 	@$(RUN) $(CLIENT) $(CLIENT_ARGS)
 
 debug-s:
-	@$(RUN) $(SERVER) $(DEBUG) $(DOMAIN_SOCKET)
+	@$(RUN) $(SERVER) $(DEBUG) $(SERVER_ARGS)
 
 debug-c:
 	@$(RUN) $(CLIENT) $(DEBUG) $(CLIENT_ARGS)
