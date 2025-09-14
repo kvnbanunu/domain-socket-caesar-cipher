@@ -21,19 +21,20 @@ func Ssetup(a *options.Args) (*net.UnixListener, error) {
 		a.Log(false, "\tStale sockfile removed.")
 	}
 
+	a.Log(false, fmt.Sprintf("\tResolving Unix Address: %s", a.Path))
 	addr, err := net.ResolveUnixAddr("unix", a.Path)
 	if err != nil {
 		fmt.Println("Error resolving Unix address:", err)
 		return nil, err
 	}
 
-	a.Log(false, fmt.Sprintf("\tCreating sockfile: %s", a.Path))
+	a.Log(false, "\tCreating sockfile...")
 	sock, err := net.ListenUnix("unix", addr)
 	if err != nil {
 		fmt.Println("Error creating Unix Socket", err)
 		return nil, err
 	}
-	
+
 	a.Log(false, fmt.Sprintf("\tNow listening on sockfile: %s", a.Path))
 
 	return sock, nil
@@ -41,42 +42,53 @@ func Ssetup(a *options.Args) (*net.UnixListener, error) {
 
 func CSetup(a *options.Args) (*net.UnixConn, error) {
 	// Check if server running (sockfile exists)
+	a.Log(true, `socket.Csetup()
+	Setting up Client...
+	Checking server sockfile...`)
 	if _, err := os.Stat(a.Path); err != nil {
 		fmt.Println("Server not available:", err)
 		return nil, err
 	}
 
+	a.Log(false, fmt.Sprintf("\tResolving Unix Address: %s", a.Path))
 	addr, err := net.ResolveUnixAddr("unix", a.Path)
 	if err != nil {
 		fmt.Println("Error resolving Unix address:", err)
 		return nil, err
 	}
 
+	a.Log(false, "\tConnecting to server...")
 	conn, err := net.DialUnix("unix", nil, addr)
 	if err != nil {
 		fmt.Println("Error connecting to Unix Socket:", err)
 		return nil, err
 	}
 
+	a.Log(false, "\tConnection established")
 	return conn, nil
 }
 
 // Closes socket and removes the sockfile
 func Cleanup(sock *net.UnixListener, a *options.Args) {
+	a.Log(true, "socket.Cleanup()\n\tClosing socket...")
 	sock.Close()
+
+	a.Log(false, "\tUnlinking sockfile...")
 	os.Remove(a.Path)
-	a.Log(true, "socket.Cleanup()\n\tSockfile removed")
 }
 
 // Clean up the socket file on SIGTERM
 func HandleSignal(sock *net.UnixListener, a *options.Args) {
+	a.Log(true, "socket.HandleSignal()\n\tNow listening for SIGTERM")
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-c
 		fmt.Println("") // print new line after Ctrl-C
-		a.Log(true, "socket.HandleSignal()\n\tReceived shutdown signal")
+		a.Log(true, "socket.HandleSignal()\n\tReceived shutdown signal\n\tInitiate cleanup...")
 		Cleanup(sock, a)
+
+		a.Log(true, "socket.HandleSignal()\n\tCleanup success\n\tServer shutting down.")
 		os.Exit(0)
 	}()
 }
@@ -105,32 +117,56 @@ func decode(str string) options.Message {
 	return res
 }
 
-func HandleConnection(conn *net.UnixConn, size int, limit int) {
+func HandleConnection(conn *net.UnixConn, config *options.Config, a *options.Args) {
 	defer conn.Close()
-	buf := make([]byte, size)
+
+	a.Log(true, `socket.HandleConnection()
+	Connection established...
+	Reading from socket...`)
+
+	buf := make([]byte, config.BufferSize)
 	n, err := conn.Read(buf)
 	if err != nil {
 		return
 	}
+
 	str := fmt.Sprintf("%s", buf[:n]) // upto 'n' bytes
+
+	a.Log(false, fmt.Sprintf("\tBytes read: %d\n\tMessage Received: %s\n\tDecoding...", n, str))
 	msg := decode(str)
-	msg.Content = caesar.Process(msg, "cipher", limit)
+
+	a.Log(false, fmt.Sprintf("\tContent: %s\n\tShift Value: %d", msg.Content, msg.Shift))
+	msg.Content = caesar.Process(msg, "cipher", config.CipherLimit)
+
+	a.Log(false, fmt.Sprintf("\tApplying Caesar Cipher...\n\tEncrypted Message: %s", msg.Content))
 	encoded := []byte(encode(msg))
+
+	a.Log(false, fmt.Sprintf("\tEncoding response...\n\tSending response: %s", encoded))
 	conn.Write(encoded)
+
+	a.Log(false, "\tClosing connection...")
 }
 
-func Request(conn *net.UnixConn, msg options.Message, size int, limit int) {
+func Request(conn *net.UnixConn, config *options.Config, a *options.Args) {
 	defer conn.Close()
-	buf := make([]byte, size)
-	encoded := []byte(encode(msg))
+
+	a.Log(true, "socket.Request()\n\tEncoding message...")
+	buf := make([]byte, config.BufferSize)
+	encoded := []byte(encode(a.Message))
+
+	a.Log(false, fmt.Sprintf("\tEncoded message: %s\n\tSending to server...", encoded))
 	conn.Write(encoded)
+
+	a.Log(false, "\tWaiting for response from server...")
 	n, err := conn.Read(buf)
 	if err != nil {
 		return
 	}
+
 	str := fmt.Sprintf("%s", buf[:n])
-	msg = decode(str)
-	fmt.Println("Encrypted:", msg.Content)
-	msg.Content = caesar.Process(msg, "decipher", limit)
-	fmt.Println("Decrypted:", msg.Content)
+	a.Log(false, fmt.Sprintf("\tResponse from server: %s\n\tDecoding...", str))
+	a.Message = decode(str)
+	fmt.Println("\n\tEncrypted response:\t", a.Message.Content)
+	a.Message.Content = caesar.Process(a.Message, "decipher", config.CipherLimit)
+	fmt.Println("\tDecrypted message:\t", a.Message.Content)
 }

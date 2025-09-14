@@ -25,7 +25,7 @@ func main() {
 
 	for {
 		conn, err := sock.AcceptUnix(); if err == nil {
-			socket.HandleConnection(conn, config.BufferSize, config.CipherLimit)
+			socket.HandleConnection(conn, config, &args)
 		}
 	}
 }

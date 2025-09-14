@@ -14,8 +14,8 @@ import (
 
 // Config to be read during runtime, holds limit for buffer size
 type Config struct {
-	BufferSize    int `json:"BufferSize"`
-	CipherLimit   int `json:"CipherLimit"`
+	BufferSize  int `json:"BufferSize"`
+	CipherLimit int `json:"CipherLimit"`
 }
 
 // Args is used to store command-line arguments
@@ -59,7 +59,9 @@ func (a *Args) LoadConfig() (*Config, error) {
 		return nil, err
 	}
 
-	a.Log(false, "\tConfig Loaded")
+	a.Log(false,
+		fmt.Sprintf("\tConfig loaded\n\tBuffer Size: %d\n\tCipher Limit: %d",
+			cfg.BufferSize, cfg.CipherLimit))
 
 	return &cfg, nil
 }
@@ -84,9 +86,8 @@ func (a *Args) ParseArgs(isClient bool) {
 	a.Debug = *debug
 
 	// Format debug log
-	logState := fmt.Sprintf(
-		`options.ParseArgs()
-	Parsing Command Line Arguments:
+	logState := fmt.Sprintf(`options.ParseArgs()
+	Parsing Command Line Arguments...
 	Path: %s
 	Debug: %t`,
 		a.Path, a.Debug)

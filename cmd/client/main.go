@@ -21,5 +21,5 @@ func main() {
 		log.Fatal(err)
 	}
 	
-	socket.Request(conn, args.Message, config.BufferSize, config.CipherLimit)
+	socket.Request(conn, config, &args)
 }
