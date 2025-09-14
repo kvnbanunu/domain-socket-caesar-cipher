@@ -12,7 +12,7 @@ func cipher(c rune, shift rune, limit int) rune {
 
 	// this block seems redundant, but we need to keep the case the same
 	// otherwise it may overflow into being always uppercase
-	if c > 'a' && c < 'z' {
+	if c >= 'a' && c <= 'z' {
 		result = c + shift
 		if result > 'z' {
 			result -= rune(limit) // loops around
@@ -32,7 +32,7 @@ func cipher(c rune, shift rune, limit int) rune {
 
 func decipher(c rune, shift rune, limit int) rune {
 	var result rune
-	if c > 'a' && c < 'z' {
+	if c >= 'a' && c <= 'z' {
 		result = c - shift
 		if result < 'a' {
 			result += rune(limit) // loops around

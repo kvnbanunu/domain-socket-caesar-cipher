@@ -11,7 +11,7 @@ func main() {
 	args := options.Args{}
 	args.ParseArgs(false)
 
-	_, err := args.LoadConfig()
+	config, err := args.LoadConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -23,5 +23,9 @@ func main() {
 
 	socket.HandleSignal(sock, &args)
 
-	for {}
+	for {
+		conn, err := sock.AcceptUnix(); if err == nil {
+			socket.HandleConnection(conn, config.BufferSize, config.CipherLimit)
+		}
+	}
 }

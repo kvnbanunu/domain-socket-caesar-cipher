@@ -1,5 +1,5 @@
-SERVER = cmd/server.go
-CLIENT = cmd/client.go
+SERVER = cmd/server/main.go
+CLIENT = cmd/client/main.go
 SERVER_TARGET = bin/server
 CLIENT_TARGET = bin/client
 BUILD = go build -o
