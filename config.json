@@ -1,3 +1,4 @@
 {
-    "BufferSize": 1024
+    "BufferSize": 1024,
+    "CipherLimit": 26
 }

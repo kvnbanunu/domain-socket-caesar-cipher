@@ -14,7 +14,8 @@ import (
 
 // Config to be read during runtime, holds limit for buffer size
 type Config struct {
-	BufferSize int `json:"BufferSize"`
+	BufferSize  int `json:"BufferSize"`
+	CipherLimit int `json:"CipherLimit"`
 }
 
 // Args is used to store command-line arguments
