@@ -16,11 +16,15 @@ func cipher(c rune, shift rune, limit int) rune {
 		result = c + shift
 		if result > 'z' {
 			result -= rune(limit) // loops around
+		} else if result < 'a' { // in the case of overflow from negative shifts
+			result += rune(limit)
 		}
 	} else {
 		result = c + shift
 		if result > 'Z' {
 			result -= rune(limit)
+		} else if result < 'A' {
+			result += rune(limit)
 		}
 	}
 	return result
@@ -32,11 +36,15 @@ func decipher(c rune, shift rune, limit int) rune {
 		result = c - shift
 		if result < 'a' {
 			result += rune(limit) // loops around
+		} else if result > 'z' {
+			result -= rune(limit)
 		}
 	} else {
 		result = c - shift
 		if result < 'A' {
 			result += rune(limit)
+		} else if result > 'Z' {
+			result -= rune(limit)
 		}
 	}
 	return result
