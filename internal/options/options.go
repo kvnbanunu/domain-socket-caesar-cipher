@@ -20,9 +20,10 @@ type Config struct {
 
 // Args is used to store command-line arguments
 type Args struct {
-	Path    string
-	Debug   bool
-	Message Message
+	Path     string
+	Debug    bool
+	Message  Message
+	ExitFlag bool
 }
 
 // Store a message along with the cipher shift value

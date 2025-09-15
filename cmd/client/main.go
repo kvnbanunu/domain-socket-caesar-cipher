@@ -13,12 +13,12 @@ func main() {
 	
 	config, err := args.LoadConfig()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Error loading config:", err)
 	}
 
 	conn, err := socket.CSetup(&args)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Error setting up client:", err)
 	}
 	
 	socket.Request(conn, config, &args)

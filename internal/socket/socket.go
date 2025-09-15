@@ -24,14 +24,12 @@ func Ssetup(a *options.Args) (*net.UnixListener, error) {
 	a.Log(false, fmt.Sprintf("\tResolving Unix Address: %s", a.Path))
 	addr, err := net.ResolveUnixAddr("unix", a.Path)
 	if err != nil {
-		fmt.Println("Error resolving Unix address:", err)
 		return nil, err
 	}
 
 	a.Log(false, "\tCreating sockfile...")
 	sock, err := net.ListenUnix("unix", addr)
 	if err != nil {
-		fmt.Println("Error creating Unix Socket", err)
 		return nil, err
 	}
 
@@ -46,21 +44,18 @@ func CSetup(a *options.Args) (*net.UnixConn, error) {
 	Setting up Client...
 	Checking server sockfile...`)
 	if _, err := os.Stat(a.Path); err != nil {
-		fmt.Println("Server not available:", err)
 		return nil, err
 	}
 
 	a.Log(false, fmt.Sprintf("\tResolving Unix Address: %s", a.Path))
 	addr, err := net.ResolveUnixAddr("unix", a.Path)
 	if err != nil {
-		fmt.Println("Error resolving Unix address:", err)
 		return nil, err
 	}
 
 	a.Log(false, "\tConnecting to server...")
 	conn, err := net.DialUnix("unix", nil, addr)
 	if err != nil {
-		fmt.Println("Error connecting to Unix Socket:", err)
 		return nil, err
 	}
 
@@ -70,6 +65,7 @@ func CSetup(a *options.Args) (*net.UnixConn, error) {
 
 // Closes socket and removes the sockfile
 func Cleanup(sock *net.UnixListener, a *options.Args) {
+	a.ExitFlag = true
 	a.Log(true, "socket.Cleanup()\n\tClosing socket...")
 	sock.Close()
 
@@ -93,31 +89,7 @@ func HandleSignal(sock *net.UnixListener, a *options.Args) {
 	}()
 }
 
-// encode the message into a string with the following format
-// <Shift Value>#<Message Content>
-// ex. Shift 6, Message "Hello" = "6#Hello"
-func encode(msg options.Message) string {
-	return fmt.Sprintf("%d#%s", msg.Shift, msg.Content)
-}
-
-func decode(str string) options.Message {
-	res := options.Message{}
-	nextIndex := 0
-	shiftstr := ""
-	for _, val := range str {
-		nextIndex++
-		if val == '#' {
-			break
-		}
-		shiftstr += string(val)
-	}
-	shift, _ := strconv.Atoi(shiftstr)
-	res.Shift = shift
-	res.Content = str[nextIndex:] // the remaining string after '#'
-	return res
-}
-
-func HandleConnection(conn *net.UnixConn, config *options.Config, a *options.Args) {
+func HandleConnection(conn *net.UnixConn, config *options.Config, a *options.Args) error {
 	defer conn.Close()
 
 	a.Log(true, `socket.HandleConnection()
@@ -127,13 +99,16 @@ func HandleConnection(conn *net.UnixConn, config *options.Config, a *options.Arg
 	buf := make([]byte, config.BufferSize)
 	n, err := conn.Read(buf)
 	if err != nil {
-		return
+		return err
 	}
 
 	str := fmt.Sprintf("%s", buf[:n]) // upto 'n' bytes
 
 	a.Log(false, fmt.Sprintf("\tBytes read: %d\n\tMessage Received: %s\n\tDecoding...", n, str))
-	msg := decode(str)
+	msg, err := decode(str)
+	if err != nil {
+		return err
+	}
 
 	a.Log(false, fmt.Sprintf("\tContent: %s\n\tShift Value: %d", msg.Content, msg.Shift))
 	msg.Content = caesar.Process(msg, "cipher", config.CipherLimit)
@@ -145,9 +120,11 @@ func HandleConnection(conn *net.UnixConn, config *options.Config, a *options.Arg
 	conn.Write(encoded)
 
 	a.Log(false, "\tClosing connection...")
+
+	return nil
 }
 
-func Request(conn *net.UnixConn, config *options.Config, a *options.Args) {
+func Request(conn *net.UnixConn, config *options.Config, a *options.Args) error {
 	defer conn.Close()
 
 	a.Log(true, "socket.Request()\n\tEncoding message...")
@@ -160,13 +137,47 @@ func Request(conn *net.UnixConn, config *options.Config, a *options.Args) {
 	a.Log(false, "\tWaiting for response from server...")
 	n, err := conn.Read(buf)
 	if err != nil {
-		return
+		return err
 	}
 
 	str := fmt.Sprintf("%s", buf[:n])
 	a.Log(false, fmt.Sprintf("\tResponse from server: %s\n\tDecoding...", str))
-	a.Message = decode(str)
+	a.Message, err = decode(str)
+	if err != nil {
+		return err
+	}
+
 	fmt.Println("\n\tEncrypted response:\t", a.Message.Content)
 	a.Message.Content = caesar.Process(a.Message, "decipher", config.CipherLimit)
 	fmt.Println("\tDecrypted message:\t", a.Message.Content)
+
+	return nil
+}
+
+// encode the message into a string with the following format
+// <Shift Value>#<Message Content>
+// ex. Shift 6, Message "Hello" = "6#Hello"
+func encode(msg options.Message) string {
+	return fmt.Sprintf("%d#%s", msg.Shift, msg.Content)
+}
+
+func decode(str string) (options.Message, error) {
+	res := options.Message{}
+	nextIndex := 0
+	shiftstr := ""
+	for _, val := range str {
+		nextIndex++
+		if val == '#' {
+			break
+		}
+		shiftstr += string(val)
+	}
+	shift, err := strconv.Atoi(shiftstr)
+	if err != nil {
+		return res, err
+	}
+
+	res.Shift = shift
+	res.Content = str[nextIndex:] // the remaining string after '#'
+	return res, nil
 }
