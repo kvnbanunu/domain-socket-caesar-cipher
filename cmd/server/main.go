@@ -41,6 +41,7 @@ func main() {
 		err = socket.HandleConnection(conn, config, &args)
 		if err != nil {
 			fmt.Println("Error handling connection:", err)
+			break
 		}
 	}
 }

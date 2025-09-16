@@ -38,7 +38,7 @@ func Ssetup(a *options.Args) (*net.UnixListener, error) {
 	return sock, nil
 }
 
-func CSetup(a *options.Args) (*net.UnixConn, error) {
+func Csetup(a *options.Args) (*net.UnixConn, error) {
 	// Check if server running (sockfile exists)
 	a.Log(true, `socket.Csetup()
 	Setting up Client...

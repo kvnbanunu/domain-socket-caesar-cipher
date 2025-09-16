@@ -54,8 +54,8 @@ func Process(msg options.Message, task string, limit int) string {
 	var output string
 	shift := rune(msg.Shift % limit)  // ensure shift is within limit (26)
 	for _, val := range msg.Content { // Go handles range string values as runes (UTF-9)
-		if unicode.IsLetter(val) {
-			var c rune
+		c := val
+		if unicode.IsLetter(c) {
 			switch task {
 			case "cipher":
 				c = cipher(val, shift, limit)
@@ -64,10 +64,8 @@ func Process(msg options.Message, task string, limit int) string {
 			default:
 				log.Fatalf("Invalid task: %s", task)
 			}
-			output += string(c)
-		} else {
-			output += string(val)
 		}
+		output += string(c)
 	}
 	return output
 }

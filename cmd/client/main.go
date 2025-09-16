@@ -16,7 +16,7 @@ func main() {
 		log.Fatal("Error loading config:", err)
 	}
 
-	conn, err := socket.CSetup(&args)
+	conn, err := socket.Csetup(&args)
 	if err != nil {
 		log.Fatal("Error setting up client:", err)
 	}

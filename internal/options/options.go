@@ -33,7 +33,7 @@ type Message struct {
 }
 
 // This method prints debug statements to stdout if debug flag is enabled
-func (a Args) Log(timestamp bool, msg string) {
+func (a *Args) Log(timestamp bool, msg string) {
 	if a.Debug {
 		if timestamp {
 			// log pkg Println includes date + time
