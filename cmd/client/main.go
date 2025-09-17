@@ -21,5 +21,8 @@ func main() {
 		log.Fatal("Error setting up client:", err)
 	}
 	
-	socket.Request(conn, config, &args)
+	err = socket.Request(conn, config, &args)
+	if err != nil {
+		log.Fatal("Error sending request:", err)
+	}
 }

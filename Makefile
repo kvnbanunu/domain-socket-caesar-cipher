@@ -13,7 +13,7 @@ SERVER_ARGS = -p $(DOMAIN_SOCKET)
 CLIENT_ARGS = -p $(DOMAIN_SOCKET) -s $(SHIFT) -i $(MESSAGE)
 COPY_CONFIG = cp config.json bin/
 
-build-all: clean-all server_build client_build
+build-all: clean-all build-s build-c
 
 build-s: clean-s
 	@$(BUILD) $(SERVER_TARGET) $(SERVER)
