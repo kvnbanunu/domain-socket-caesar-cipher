@@ -1,5 +1,8 @@
 package caesar
 
+// package caesar implements functions to apply the caesar cipher
+// to a string by a given shift amount
+
 import (
 	"log"
 	"unicode"
@@ -7,6 +10,7 @@ import (
 	"github.com/kvnbanunu/uds-caesar-cipher/internal/options"
 )
 
+// Applies the caesar cipher to c by shift amount
 func cipher(c rune, shift int, limit int) rune {
 	var result rune
 
@@ -30,6 +34,7 @@ func cipher(c rune, shift int, limit int) rune {
 	return result
 }
 
+// Reverses the caesar cipher to c by the shift amount
 func decipher(c rune, shift int, limit int) rune {
 	var result rune
 	if c >= 'a' && c <= 'z' {
@@ -50,6 +55,7 @@ func decipher(c rune, shift int, limit int) rune {
 	return result
 }
 
+// Iterates over the message content and applies the cipher to each letter
 func Process(msg options.Message, task string, limit int) string {
 	var output string
 	shift := msg.Shift % limit  // ensure shift is within limit (26)

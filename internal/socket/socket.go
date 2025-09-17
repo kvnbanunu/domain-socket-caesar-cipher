@@ -1,5 +1,9 @@
 package socket
 
+// package socket implements functions that facilitate
+// communication over a client-server connection
+// for this program, unix domain sockets are used
+
 import (
 	"fmt"
 	"net"
@@ -12,6 +16,7 @@ import (
 	"github.com/kvnbanunu/uds-caesar-cipher/internal/options"
 )
 
+// Setup unix domain socket for server
 func Ssetup(a *options.Args) (*net.UnixListener, error) {
 	a.Log(true, "socket.Ssetup()\n\tSetting up Server...")
 	// remove sockfile if already exists
@@ -38,6 +43,7 @@ func Ssetup(a *options.Args) (*net.UnixListener, error) {
 	return sock, nil
 }
 
+// Setup client connection to server domain socket
 func Csetup(a *options.Args) (*net.UnixConn, error) {
 	// Check if server running (sockfile exists)
 	a.Log(true, `socket.Csetup()
@@ -73,7 +79,7 @@ func Cleanup(sock *net.UnixListener, a *options.Args) {
 	os.Remove(a.Path)
 }
 
-// Clean up the socket file on SIGTERM
+// Handles SIGTERM by calling cleanup
 func HandleSignal(sock *net.UnixListener, a *options.Args) {
 	a.Log(true, "socket.HandleSignal()\n\tNow listening for SIGTERM")
 	c := make(chan os.Signal, 1)
@@ -89,6 +95,7 @@ func HandleSignal(sock *net.UnixListener, a *options.Args) {
 	}()
 }
 
+// Reads incoming message, applies cipher then responds with the encrypted message
 func HandleConnection(conn *net.UnixConn, config *options.Config, a *options.Args) error {
 	defer conn.Close()
 
@@ -124,6 +131,7 @@ func HandleConnection(conn *net.UnixConn, config *options.Config, a *options.Arg
 	return nil
 }
 
+// Write message and shift value to server, 
 func Request(conn *net.UnixConn, config *options.Config, a *options.Args) error {
 	defer conn.Close()
 
@@ -161,6 +169,7 @@ func encode(msg options.Message) string {
 	return fmt.Sprintf("%d#%s", msg.Shift, msg.Content)
 }
 
+// Unpack the string into a Message struct
 func decode(str string) (options.Message, error) {
 	res := options.Message{}
 	nextIndex := 0
